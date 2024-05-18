@@ -1,21 +1,31 @@
 #include "Arduino_BHY2.h"
 #include "Nicla_System.h"
 
-SensorXYZ baro(SENSOR_ID_BARO);
+#define DELAY 60000
 
-int baroX, baroY, baroZ;
+
+Sensor baro(SENSOR_ID_BARO);
+
+double pressure;
+long milliseconds;
+
 
 void setup() {
   // put your setup code here, to run once:
   Serial.begin(115200);
   nicla::begin();
+  BHY2.begin();
+  baro.begin();
 }
 
 void loop() {
   // put your main code here, to run repeatedly:
-  baroX = baro.x();
-  baroY = baro.y();
-  baroZ = baro.z();
+  static auto lastCheck= millis();
+  BHY2.update();
 
-  Serial.println(String(baroX) + "," + String(baroX) + "," + String(baroX));
+  if ((milliseconds = millis()) - lastCheck >= DELAY) {
+    lastCheck = milliseconds;
+    pressure = baro.value();
+    Serial.println(String(milliseconds) + "," + baro.toString());
+  }
 }
