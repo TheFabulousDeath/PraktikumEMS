@@ -1,3 +1,6 @@
+//IN BRANCH 2604
+
+
 #include <cstdio>
 #include <cstdlib>
 #include <Arduino_BHY2.h>
@@ -16,6 +19,7 @@
   long _avgGyroX = 0, _avgGyroY = 0, _avgGyroZ = 0; 
   int runMeasure = 0;
   bool isCalibrated = false;
+  long milliseconds;
 void setup() {
   // put your setup code here, to run once:
     Serial.begin(115200);
@@ -36,6 +40,7 @@ void loop() {
   //_gyroX = gyro.x();
   static auto lastCheck = millis();
   
+  //CALIBRATION
   if(runMeasure < CALIBRATION && isCalibrated == false) {
       if( millis() - lastCheck >= 100){
         lastCheck = millis();
@@ -57,7 +62,7 @@ void loop() {
   } else if(runMeasure < MEASUREMENTS)
   {
 
-      if( millis() - lastCheck >= 100){
+      if((milliseconds = millis()) - lastCheck >= 100){
         lastCheck = millis();
         BHY2.update();
         _gyroX = gyro.x();
@@ -67,7 +72,7 @@ void loop() {
         _avgGyroX += _gyroX;
         _avgGyroY += _gyroY;
         _avgGyroZ += _gyroZ;
-        Serial.println("RAW READINGS  X: " + String(_gyroX) + "\t Y: " + String(_gyroY) + "\t Z: " + String(_gyroZ));
+        Serial.println(String(milliseconds) + "," + String(_gyroX) + "," + String(_gyroY) + "," + String(_gyroZ));
         runMeasure++;
       }
   } else
