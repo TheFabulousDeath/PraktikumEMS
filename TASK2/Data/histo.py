@@ -6,7 +6,7 @@ import plotly.express as px
 data = pd.read_csv(sys.argv[1])
 
 # Extract the pressure column
-pressure_data = data.iloc[:, 1]
+pressure_data = data.iloc[:, 0]
 
 # Create a histogram using Plotly
 fig = px.histogram(pressure_data, x=pressure_data, nbins=100, title='Histogram of Pressure Readings')
