@@ -5,7 +5,7 @@
 
 77/142 Motion detection -- Liam
 50/137 Step Detector -- Liam
-19-23 Magnetometer -- Vincent
+19-23 Magnetometer -- Vincent 
 63 Activity recognition -- Liam
 75 Stationary detect
 115 BSEC Data -- Vincent
@@ -24,5 +24,3 @@ Wie groß ist der Speicher -- Vincent
 BSEC 15 Minuten einschwingen lassen. 
 
 gas.value() funktioniert.
-
-
