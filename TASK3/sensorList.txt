@@ -3,10 +3,10 @@
 (((Gravity Vector)))
 
 
-77/142 Motion detection -- Liam
-50/137 Step Detector -- Liam
+__77/142 Motion detection__ -- Liam => trash
+50/137 Step Detector -- Liam => trash
 19-23 Magnetometer -- Vincent 
-63 Activity recognition -- Liam
+63 Activity recognition -- Liam => siehe activies
 75 Stationary detect
 115 BSEC Data -- Vincent
 128 Temperature -- Vincent
