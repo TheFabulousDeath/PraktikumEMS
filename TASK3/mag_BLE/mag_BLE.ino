@@ -2,12 +2,15 @@
 #include "Nicla_System.h"
 #include <ArduinoBLE.h>
 
+
+// Erzeugt UUID
 #define BLE_SENSE_UUID(val) ("19b10000-" val "-537e-4f6c-d104768a1214")
 
 const int VERSION = 0x00000000;
 
 BLEService service(BLE_SENSE_UUID("0000"));
 
+// Datenfeld was übertragen wird
 BLEUnsignedIntCharacteristic versionCharacteristic(BLE_SENSE_UUID("1001"), BLERead);
 BLECharacteristic magCharacteristic(BLE_SENSE_UUID("1101"), BLERead | BLENotify, 3 * sizeof(float)); // Array of 3x 2 Bytes, XY
 BLECharacteristic magOffCharacteristic(BLE_SENSE_UUID("1102"), BLERead | BLENotify, 3 * sizeof(float)); // Array of 3x 2 Bytes, XY
@@ -33,7 +36,7 @@ void setup() {
   }
 
 
-  //Address
+  //Don't touch for now
   String address = BLE.address();
 
   Serial.print("address = ");
@@ -54,7 +57,7 @@ void setup() {
   BLE.setDeviceName(name.c_str());
   BLE.setAdvertisedService(service);
 
-  //Add Characteristics
+  //Add Characteristics (siehe Zeile 12)
   service.addCharacteristic(magCharacteristic);
   service.addCharacteristic(magOffCharacteristic);
   service.addCharacteristic(versionCharacteristic);
