@@ -13,12 +13,11 @@ BLEService service(BLE_SENSE_UUID("0000"));
 // Datenfeld was übertragen wird
 BLEUnsignedIntCharacteristic versionCharacteristic(BLE_SENSE_UUID("1001"), BLERead);
 BLECharacteristic magCharacteristic(BLE_SENSE_UUID("1101"), BLERead | BLENotify, 3 * sizeof(float)); // Array of 3x 2 Bytes, XY
-BLECharacteristic magOffCharacteristic(BLE_SENSE_UUID("1102"), BLERead | BLENotify, 3 * sizeof(float)); // Array of 3x 2 Bytes, XY
 
 String name;
 
-SensorXYZ mag(SENSOR_ID_MAG_RAW);
-SensorXYZ mag_off(SENSOR_ID_MAG_BIAS);
+SensorXYZ mag(SENSOR_ID_MAG_BIAS);
+
 
 void setup() {
   // put your setup code here, to run once:
@@ -26,7 +25,6 @@ void setup() {
   nicla::begin();
   BHY2.begin();
   mag.begin();
-  mag_off.begin();
 
   if (!BLE.begin()){
     Serial.println("Failed to initialized BLE!");
@@ -59,7 +57,6 @@ void setup() {
 
   //Add Characteristics (siehe Zeile 12)
   service.addCharacteristic(magCharacteristic);
-  service.addCharacteristic(magOffCharacteristic);
   service.addCharacteristic(versionCharacteristic);
   //No sensor event handlers
   
@@ -73,6 +70,7 @@ void setup() {
 
 void loop() {
   // put your main code here, to run repeatedly:
+  delay(1000);
   while (BLE.connected()){
     BHY2.update();
 
@@ -85,7 +83,7 @@ void loop() {
       z = mag.z();
 
       float magValues[3] = {x, y, z};
-
+      Serial.println(String((int) sqrt(x*x + y*y + z*z)));
       magCharacteristic.writeValue(magValues, sizeof(magValues));
     }
   }

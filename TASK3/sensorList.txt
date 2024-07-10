@@ -5,7 +5,7 @@
 
 __77/142 Motion detection__ -- Liam => trash
 50/137 Step Detector -- Liam => trash
-19-23 Magnetometer -- Vincent 
+19-23 Magnetometer -- Vincent  => Schwierig
 63 Activity recognition -- Liam => siehe activies
 75 Stationary detect
 115 BSEC Data -- Vincent
