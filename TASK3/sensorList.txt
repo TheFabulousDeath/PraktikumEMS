@@ -1,0 +1,26 @@
+(Accelerometer)
+((Gyro))
+(((Gravity Vector)))
+
+
+__77/142 Motion detection__ -- Liam => trash
+50/137 Step Detector -- Liam => trash
+19-23 Magnetometer -- Vincent  => Schwierig
+63 Activity recognition -- Liam => siehe activies
+75 Stationary detect
+115 BSEC Data -- Vincent
+128 Temperature -- Vincent
+129 Barometer -- Vincent
+130 Humidity -- Vincent
+(131 gas -- what gas?!) -- Vincent
+
+BLE -- Liam
+
+
+Wie groß ist der Speicher -- Vincent
+	-> Messen mit PB und dann dumpen
+
+
+BSEC 15 Minuten einschwingen lassen. 
+
+gas.value() funktioniert.
