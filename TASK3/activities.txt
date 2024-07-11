@@ -2,10 +2,10 @@
 =========================================
 256:    Still activity started
 1:      Still activity ended
-1024:   Running activity started
-36:     Running activity ended
 512:    Walking activity started
 8226:   Walking activity ended
+1024:   Running activity started
+36:     Running activity ended
 
 unimportant:
 0:      Waiting to detect valid activity
