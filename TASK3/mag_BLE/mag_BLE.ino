@@ -12,11 +12,11 @@ BLEService service(BLE_SENSE_UUID("0000"));
 
 // Datenfeld was übertragen wird
 BLEUnsignedIntCharacteristic versionCharacteristic(BLE_SENSE_UUID("1001"), BLERead);
-BLECharacteristic magCharacteristic(BLE_SENSE_UUID("1101"), BLERead | BLENotify, 3 * sizeof(float)); // Array of 3x 2 Bytes, XY
+BLECharacteristic magCharacteristic(BLE_SENSE_UUID("1101"), BLERead | BLENotify, 3 * sizeof(float)); // Array of 3x 2 Bytes, XYZ
 
 String name;
 
-SensorXYZ mag(SENSOR_ID_MAG_BIAS);
+SensorXYZ mag(SENSOR_ID_MAG);
 
 
 void setup() {
@@ -70,7 +70,6 @@ void setup() {
 
 void loop() {
   // put your main code here, to run repeatedly:
-  delay(1000);
   while (BLE.connected()){
     BHY2.update();
 
