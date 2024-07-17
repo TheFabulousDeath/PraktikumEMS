@@ -3,11 +3,23 @@
 
 bool debugFlag = true;
 
+#define MAXROTATIONS 200
+
 SensorQuaternion rotationVector(SENSOR_ID_RV);
 SensorXYZ magnetometer(SENSOR_ID_MAG);
 
-float x, y, z, w;
 int mag_x, mag_y, mag_z;
+int lastMismatch;
+float x, y, z, w;
+
+enum magResult {MISALIGNED, MISMATCH, MATCH};
+
+unsigned long timer = 0;
+bool abnormalityDetected = false;
+bool normalityDetected = false;
+bool noValidPoint;
+const int interval = 100;
+int score = 0;
 
 class Orientation {
 public:
@@ -15,23 +27,19 @@ public:
   float y;
   float z;
   float w;
+  int fieldStrength;
 };
 
-class MagneticFieldEntry {
-public:
-  int entries;
-  int averageStrength;
-  Orientation orientation;
-};
-
-Orientation orientationArray[100];
+Orientation orientationArray[MAXROTATIONS];
 int orientationCount = 1;
 Orientation currentOrientation;
 Orientation previousOrientation;
 
+
+// Places current orientation into array
 void newOrientation() {
   if(isNewOrientation()) {
-    if (orientationCount < 100) {
+    if (orientationCount < MAXROTATIONS) {
       orientationArray[orientationCount] = currentOrientation;
       orientationCount++;
       if(debugFlag) {
@@ -41,113 +49,130 @@ void newOrientation() {
   }
 }
 
+
+
+
+int mismatchScore() {
+
+  static unsigned long lastUpdateTime = millis();
+
+  if(isMoving()) {
+    timer += millis() - lastUpdateTime;
+    lastUpdateTime = millis();
+
+    if(matchesMagneticField() == MISMATCH) {
+      abnormalityDetected = true;
+    }
+    if(matchesMagneticField() == MATCH){
+      normalityDetected = true;
+    }
+
+    // Check if 5 seconds have passed
+    if(timer >= interval){
+      if (abnormalityDetected) {
+        //Decrese score by one level
+        if (score > 0 )
+        {
+          score -= 5;
+        }
+      } else
+      if (normalityDetected) {
+        if (score < 100)
+        {
+          score += 1;
+        }
+      }
+
+      // Reset timer and flag
+      timer = 0;
+      abnormalityDetected = false;
+      normalityDetected = false;
+    }
+  } else {
+    // Reset the last update time to pause the timer
+    lastUpdateTime = millis();
+  }
+
+  return score;
+}
+
+int isOutside() {
+
+}
+
+bool isCalibrated(){
+  if(orientationCount >= 99) {return true;}
+}
 bool isNewOrientation() {
   for(int i = 0; i < orientationCount; i++) {
-    if(dotProduct(orientationArray[i]) >= 0.90) {
+    if(dotProduct(orientationArray[i]) >= 0.98) {
       return false;
     }
   }
-  delay(100);
   return true;
+}
+
+//DUMMY FUNCTION
+bool isMoving()
+{
+  return true;
+}
+
+enum magResult matchesMagneticField() {
+  for(int i = 0; i < orientationCount; i++) {
+    //if(debugFlag){Serial.print( String( millis() ) );}
+    if(dotProduct(orientationArray[i]) >= 0.99) {
+      if(debugFlag){Serial.print("Orientation match, ");}
+      int strength = calculateFieldStrength();
+      if(strength <= orientationArray[i].fieldStrength + 100 && strength >= orientationArray[i].fieldStrength - 100){
+          //Strength mismatch
+          if(debugFlag){Serial.println("Strength match" + String(strength) + String(orientationArray[i].fieldStrength));}
+          return MATCH;
+      }
+      // Strength mismatch
+      lastMismatch = millis();
+      if(debugFlag){Serial.println("Strength mismatch" + String(strength) + String(orientationArray[i].fieldStrength));}
+      return MISMATCH;
+    }
+  }
+  return MISALIGNED;
 }
 
 float dotProduct(Orientation vec2) {
   return currentOrientation.x * vec2.x + currentOrientation.y * vec2.y + currentOrientation.z * vec2.z + currentOrientation.w * vec2.w;
 }
 
+int calculateFieldStrength() {
+  mag_x = magnetometer.x();
+  mag_y = magnetometer.y();
+  mag_z = magnetometer.z();
+
+  return sqrt(mag_x*mag_x + mag_y*mag_y + mag_z*mag_z);
+}
+
+
 void orientationSetup() {
   BHY2.update();
+  if(debugFlag){Serial.println("Initializing... Wait three seconds");}
   x = rotationVector.x();
   y = rotationVector.y();
   z = rotationVector.z();
   w = rotationVector.w();
-  orientationArray[0] = {x,y,z,w};
-  previousOrientation = {x,y,z,w};
-}
-/*#include <Arduino_BHY2.h>
-//#include "Nicla_System.h"
-#include <vector>
-
-bool debugFlag = true;
-
-SensorQuaternion rotationVector(SENSOR_ID_RV);
-SensorXYZ magnetometer(SENSOR_ID_MAG);
-
-float x, y, z, w;
-int mag_x, mag_y, mag_z;
-
-class Orientation {
-public:
-  float x;
-  float y;
-  float z;
-  float w;
-};
-
-class magneticFieldEntry {
-  int entries;
-  int averageStrength;
-  Orientation orientation;
-};
-
-std::vector<Orientation> orientationVector = {};
-Orientation currentOrientation;
-Orientation previousOrientation;
-
-
-void newOrientation() {
-  if(isNewOrientation()){
-    orientationVector.push_back(currentOrientation);
-    if(debugFlag){Serial.println(String(millis()) + ", New Orientation found. Length: " + String(orientationVector.size()));}
-  }
-}
-
-bool isNewOrientation() {
-  for(auto i : orientationVector) 
-  {
-    if(dotProduct(i)>=0.95) {return false;}
-  }
-  delay(100);
-  return true;
-}
-
-float dotProduct(Orientation vec2) {
-    return currentOrientation.x * vec2.x + currentOrientation.y * vec2.y + currentOrientation.z * vec2.z + currentOrientation.w * vec2.w;
-}
-*/
-/*
-float magnitude(Orientation vec) {
-    float sum = vec.x*vec.x + vec.y*vec.y + vec.z*vec.z + vec.w*vec.w;
-    return sqrt(sum);
-}
-*/
-
-/* 
-THIS FUNCTION ASSUMES VECTORS WITH A TWO-NORM > 1, QUATERNIONS HAVE A NORM OF 1 AT ALL TIMES
-float cosineSimilarity(Orientation vec1, Orientation vec2) {
-    float dotProd = dotProduct(vec1, vec2);
-    float mag1 = magnitude(vec1);
-    float mag2 = magnitude(vec2);
-
-    if (mag1 == 0 || mag2 == 0) {
-        // Handle the case where one vector is zero vector, resulting in undefined cosine similarity
-        return 0.0;
-    }
-
-    return dotProd  / (mag1 * mag2);
-}
-*/
-
-float cosineSimilarityPercent(Orientation vec2) {
-    float dotProd = dotProduct(vec2);
-    return 100*dotProd;
+  orientationArray[0] = {x,y,z,w, calculateFieldStrength()};
+  previousOrientation = orientationArray[0];
 }
 
 void setup() {
   Serial.begin(115200);
   BHY2.begin();
   rotationVector.begin();
-  
+  magnetometer.begin();
+  for(int i = 0; i<3000;i++)
+  {
+    BHY2.update();
+    delay(1);
+    Serial.println(String(i) + "/3000");
+  }
   orientationSetup();
   Serial.println("SETUP COMPLETE");
 }
@@ -159,9 +184,12 @@ void loop() {
   z = rotationVector.z();
   w = rotationVector.w();
   
-  currentOrientation = {x,y,z,w};
+  currentOrientation = {x,y,z,w,calculateFieldStrength()};
   newOrientation();
+  matchesMagneticField();
+  Serial.println("Mismatch score: " + String(mismatchScore()));
   //Serial.println(String(x) + ", " + String(y) + ", " + String(z) + ", " + String(w) + ", " + String(cosineSimilarityNormalized(previousOrientation)));
   previousOrientation = currentOrientation;
+  delay(10);
 }
 
