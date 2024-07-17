@@ -8,11 +8,15 @@
 SensorActivity activity(SENSOR_ID_AR);
 Sensor baro(SENSOR_ID_BARO);
 
-enum movement {Undifined = -1, Still, NotStill, Moving} active = Undifined;
+// Global variables:
+enum motion {Undifined = -1, Still, NotStill, Moving} movement = Undifined;
 
-int ground;
-int counter = 0; //0-lengthoflast_baro
-int last_baro[4]; // defines length of avg
+int storey = 0;   // starting floor = 0
+int storey_baro;   // pressure at starting floor
+int counter = 0; 
+int last_baro[8];
+int avg_baro;   // to return last calculated avg
+
 
 
 int baro_value() {
@@ -39,61 +43,56 @@ int baro_cal(int discarded, int values) {
   return avg;
 }
 
+
 void setup() {
   Serial.begin(115200);
   BHY2.begin();
   activity.begin();
   baro.begin();
   
-  ground = baro_cal(10, 20);
+  storey_baro = avg_baro = baro_cal(10, 20);  // (#discarded, #base_average)
+  
     
-  for(int i = 0; i < 4; i++) last_baro[i] = ground;
-  //last_baro = {ground};
   Serial.println("Activity:");
 }
 
-void activity_print() {
-  //Serial.println(active);
-}
 
-void AR() {
+int AR() {
   switch(activity.value()) {
-    case 256: if(active != Still) {
-      active = Still;
-      activity_print(); }
+    case 256: if(movement != Still) {
+      movement = Still;
+      //Serial.println(movement); 
+      }
       break;
     case 1:
     case 8226:
-    case 36: if(active != NotStill) {
-      active = NotStill;
-      activity_print(); }
+    case 36: if(movement != NotStill) {
+      movement = NotStill;
+      //Serial.println(movement); 
+      }
       break;
     case 512:
-    case 1024: if(active != Moving) {
-      active = Moving;
-      activity_print(); }
+    case 1024: if(movement != movement) {
+      movement = movement;
+      //Serial.println(movement); 
+      }
       break;    
   }
+
+  return movement;
 }
 
 int average(int array[]) {
-  int l = 4;//sizeof(array) / sizeof(array[0]);
   int sum = 0;
-  
-  for(int i = 0; i < 4; i++) sum += array[i];
+  int l = sizeof(array) / sizeof(array[0]);
+    
+  for(int i = 0; i < l; i++) sum += array[i];
   
   return sum / l;
 }
 
-
-void loop() {
-  static auto lastCheck = millis();
-
-  if(millis()-lastCheck >= 100){
-    lastCheck = millis();
-    BHY2.update();
-
-    switch(counter) {
+int AB() {
+  switch(counter) {
       case 0: last_baro[0] = baro_value();
         counter++;
         break;
@@ -104,13 +103,47 @@ void loop() {
         counter++;
         break;
       case 3: last_baro[3] = baro_value();
-        Serial.println("Avg: " + String(average(last_baro)));
-        counter = 0;
+        counter++;
         break;
-    }
+      case 4: last_baro[4] = baro_value();
+        counter++;
+        break;
+      case 5: last_baro[5] = baro_value();
+        counter++;
+        break;
+      case 6: last_baro[6] = baro_value();
+        counter++;
+        break;
+      case 7: last_baro[7] = baro_value();
+        Serial.println("Stry_baro: "+ String(storey_baro)+ "  Avg: " + String(average(last_baro)));
+        counter = 0;
+        avg_baro = average(last_baro);
+        storey = FD();
+        break;
+  }
+  
+  return avg_baro;
+}
 
+int FD() {  // threashold = 34
+  
+}
 
-    //Serial.println(String(baro_value())); 
+bool approx(int value, int compare, int deviation) {
+  return (value)
+}
+
+void loop() {
+  static auto lastCheck = millis();
+
+  if(millis()-lastCheck >= 100){
+    lastCheck = millis();
+    BHY2.update();
+
+    
+
+  AB();
+//    Serial.println(String(FD())); 
   
   }
 }
