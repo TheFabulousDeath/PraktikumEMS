@@ -3,6 +3,7 @@
 
 #include "Arduino_BHY2.h"
 #include "Nicla_System.h"
+#include "ArduinoBLE.h"
 
 #include <cstdio>
 #include <cstdlib>
@@ -36,6 +37,7 @@ class Activity : public ISensor {
 
   public:
 
+  int storey = 0;   // starting floor = 0
   bool vert_movement; // actual vertical movement
   enum motion {Undefined = -1, Still, NotStill, Moving} movement = Undefined;
 
@@ -86,7 +88,6 @@ class Activity : public ISensor {
 
   private:
 
-	int storey = 0;   // starting floor = 0
 	int storey_baro;   // pressure at current floor
 	int counter = 0; 
 	int last_baro[8];
@@ -191,8 +192,8 @@ class Activity : public ISensor {
       else score ++;    
     }
 
-    if((avg_baro - last_avg) > 1 && score > -1) return 1;
-    else if((avg_baro - last_avg) < -1 && score < 1) return -1;
+    if((avg_baro - last_avg) > 2 && score > -1) return 1;
+    else if((avg_baro - last_avg) < -2 && score < 1) return -1;
     else return 0;
   }
 }; // END class Activity : public ISensor
