@@ -44,7 +44,7 @@ class Activity : public ISensor {
   }
   
 	bool is_moving() {
-	  movingFlag = (movement == 2);
+	  movingFlag = (AD() == 2);
 	  return movingFlag;
 	}
 	
@@ -62,10 +62,28 @@ class Activity : public ISensor {
 		lastCheck = millis();
 		BHY2.update();
 	  AB();
+    AD();
     }
 	}
   
-  
+  int FD() {  // floor detection
+    int difference = storey_baro - avg_baro;
+
+    if(abs(difference) < (hight*3/4)) { // same storey
+      return storey;
+    }
+    else if(difference > (hight*3/4) && difference < (hight*5/4)) { // storey up
+      storey_baro -= hight;
+      return ++storey;
+    }
+    else if(-difference > (hight*3/4) && difference < (hight*5/4)) { // storey down
+      storey_baro += hight;
+      return --storey;
+    }
+    return storey;  // fallback
+  }
+
+
   private:
 
 	int storey = 0;   // starting floor = 0
@@ -161,24 +179,6 @@ class Activity : public ISensor {
 	  return sum / (end - start);
 	}
 
-  int FD() {  // floor detection
-    int difference = storey_baro - avg_baro;
-
-    if(abs(difference) < (hight*3/4)) { // same storey
-      return storey;
-    }
-    else if(difference > (hight*3/4) && difference < (hight*5/4)) { // storey up
-      storey_baro -= hight;
-      return ++storey;
-    }
-    else if(-difference > (hight*3/4) && difference < (hight*5/4)) { // storey down
-      storey_baro += hight;
-      return --storey;
-    }
-    return storey;  // fallback
-  }
-
-
   int VM() {
     int score = 0;
     for(int i = 0; i < 7; i++) {
@@ -256,26 +256,25 @@ public:
 	    }
 
 	    // Check if 5 seconds have passed
-	    if(timer >= interval){
+	    if(timer >= interval) {
+        if (abnormalityDetected) {
+          if (score > 0)
+          {
+            score -= 15;
+          }
+        } else
 	      if (normalityDetected) {
-		//Decrese score by one level
-		if (score < 100 )
-		{
-		  score += 5;
-		}
-	      } else
-	      if (abnormalityDetected) {
-		if (score > 0)
-		{
-		  score -= 5;
-		}
-	      }
-
-	      // Reset timer and flag
-	      timer = 0;
-	      abnormalityDetected = false;
-	      normalityDetected = false;
-	    }
+          //Decrese score by one level
+          if (score < 100 )
+          {
+            score += 5;
+          }
+        }
+        // Reset timer and flag
+        timer = 0;
+        abnormalityDetected = false;
+        normalityDetected = false;
+      }
 	  } else {
 	    // Reset the last update time to pause the timer
 	    lastUpdateTime = millis();
@@ -299,7 +298,7 @@ private:
 	bool abnormalityDetected = false;
 	bool normalityDetected = false;
 	bool noValidPoint;
-	const int interval = 3000;
+	const int interval = 200;
 	int score = 0;
 
 	class Orientation {

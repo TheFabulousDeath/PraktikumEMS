@@ -47,7 +47,7 @@ void loop() {
       break;
   }
 
-  Serial.println("State: " + String(state) + ", OutsideScore" + String(magnetometerInterface->isOutside()) + ", IsWalking" + String(activityInterface->is_moving()));
+  Serial.println("State: " + String(state) + ", OutsideScore" + String(magnetometerInterface->isOutside()) + ", IsWalking" + String(activityInterface->is_moving()) + "Floor: " + String(activityInterface->FD()));
 }
 
 bool t0() {
