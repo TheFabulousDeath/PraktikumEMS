@@ -56,7 +56,7 @@ int mismatchScore() {
 
   static unsigned long lastUpdateTime = millis();
 
-  if(isMoving()) {
+  if(is_moving()) {
     timer += millis() - lastUpdateTime;
     lastUpdateTime = millis();
 
@@ -113,7 +113,7 @@ bool isNewOrientation() {
 }
 
 //DUMMY FUNCTION
-bool isMoving()
+bool is_moving()
 {
   return true;
 }
