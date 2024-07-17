@@ -46,38 +46,38 @@ void loop() {
       if(t7()) {state = inside;}  
       break;
   }
+
+  Serial.println("State: " + String(state) + ", OutsideScore" + String(magnetometerInterface->isOutside()) + ", IsWalking" + String(activityInterface->is_moving()));
 }
 
 bool t0() {
   // Fires when all sensors are calibrated
-  if(magnetometerInterface->isCalibrated() && activityInterface->isCalibrated()){return true;}
+  return (magnetometerInterface->isCalibrated() && activityInterface->isCalibrated());
 }
 
 bool t1(){
-  int outsideScore = magnetometerInterface->isOutside() + ;
-  if(outsideScore >= 80) {return true;}
-  return false;
+  int outsideScore = magnetometerInterface->isOutside();
+  return (outsideScore >= 90);
 }
 
-bool t2(){
-  
-  return true;
-}
 bool t3(){
-  return true;
+  int outsideScore = magnetometerInterface->isOutside();
+  return (outsideScore < 40);
 }
+
 bool t4(){
-  return true;
+  int outsideScore = magnetometerInterface->isOutside();
+  return (outsideScore >= 80);
 }
 bool t5(){
-  return true;
+  return (activityInterface->is_moving() && activityInterface->vert_movement);
 }
 bool t6(){
-  return true;
+  return (!( activityInterface->is_moving() ) && activityInterface->vert_movement);
 }
 bool t7(){
-  return true;
+  return activityInterface->is_moving() && !(activityInterface->vert_movement);
 }
 bool t8(){
-  return true;
+  return activityInterface->is_moving() && !(activityInterface->vert_movement);
 }

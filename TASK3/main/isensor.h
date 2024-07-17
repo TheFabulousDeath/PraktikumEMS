@@ -35,7 +35,10 @@ class Activity : public ISensor {
 
 
   public:
-  
+
+  bool vert_movement; // actual vertical movement
+  enum motion {Undefined = -1, Still, NotStill, Moving} movement = Undefined;
+
   bool isCalibrated() {
     return true;
   }
@@ -65,8 +68,6 @@ class Activity : public ISensor {
   
   private:
 
-	enum motion {Undifined = -1, Still, NotStill, Moving} movement = Undifined;
-
 	int storey = 0;   // starting floor = 0
 	int storey_baro;   // pressure at current floor
 	int counter = 0; 
@@ -75,7 +76,7 @@ class Activity : public ISensor {
   int last_avg;   // last avg_baro
   int current_move = 0;
   int last_move = 0;  // last moving direction
-  bool vert_movement; // actual vertical movement
+  
 
   
   int baro_value() {
@@ -140,7 +141,7 @@ class Activity : public ISensor {
           vert_movement = current_move && (current_move == last_move);  // securely detect vertical movement
           AD();                                 // refresh movement
           
-          Serial.println("Stry: " + String(storey) + ",\tstairs: " + String(movement == 2 && vert_movement) + ",\tlift: " + String(movement != 2 && vert_movement));
+          //Serial.println("Stry: " + String(storey) + ",\tstairs: " + String(movement == 2 && vert_movement) + ",\tlift: " + String(movement != 2 && vert_movement));
           //printarray(last_baro);(
 
           last_move = current_move;
