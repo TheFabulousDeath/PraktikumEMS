@@ -6,17 +6,21 @@ enum STATES {calibration, start, outside, inside, stairs, elevator};
 STATES state;
 
 Magnetometer* magnetometerInterface = new Magnetometer();
+Activity* activityInterface = new Activity();
 
 void setup() {
+  Serial.begin(115200);
+  BHY2.begin();
   state = calibration;
   //Serial.println("Starting Magnetometer");
   magnetometerInterface->setup();
+  activityInterface->setup();
   Serial.println("SETUP COMPLETE");
 }
 
 void loop() {
   magnetometerInterface->loop();
-
+  activityInterface->loop();
 
 
 
@@ -46,15 +50,17 @@ void loop() {
 
 bool t0() {
   // Fires when all sensors are calibrated
-  if(magnetometerInterface->isCalibrated() &&)
-  return true;
+  if(magnetometerInterface->isCalibrated() && activityInterface->isCalibrated()){return true;}
 }
 
 bool t1(){
-  return true;
+  int outsideScore = magnetometerInterface->isOutside() + ;
+  if(outsideScore >= 80) {return true;}
+  return false;
 }
 
 bool t2(){
+  
   return true;
 }
 bool t3(){
