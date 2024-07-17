@@ -1,6 +1,6 @@
 #include <cstdio>
 #include <cstdlib>
-#include <stdbool.h>
+//#include <stdbool.h>
 
 #include "Nicla_System.h"
 #include <Arduino_BHY2.h>
@@ -19,6 +19,10 @@ int storey_baro;   // pressure at current floor
 int counter = 0; 
 int last_baro[8];
 int avg_baro;   // to return last calculated avg
+int last_avg;   // last avg_baro
+int current_move = 0;
+int last_move = 0;  // last moving direction
+bool vert_movement; // actual vertical movement
 
 
 
@@ -53,10 +57,10 @@ void setup() {
   activity.begin();
   baro.begin();
   
-  storey_baro = avg_baro = baro_cal(10, 20);  // (#discarded, #base_average)
+  storey_baro = avg_baro = last_avg = baro_cal(10, 20);  // (#discarded, #base_average)
   
     
-  Serial.println("Activity:");
+  //Serial.println("Activity:");
 }
 
 bool is_moving() {
@@ -71,17 +75,16 @@ int AD() {  // activity detection
       //Serial.println(movement); 
       }
       break;
-    case 1:
-    case 8226:
-    case 36: if(movement != NotStill) {
-      movement = NotStill;
-      //Serial.println(movement); 
+    case 1: case 8226: case 36: 
+      if(movement != NotStill) {
+        movement = NotStill;
+        //Serial.println(movement); 
       }
       break;
-    case 512:
-    case 1024: if(movement != movement) {
-      movement = movement;
-      //Serial.println(movement); 
+    case 512: case 1024: 
+      if(movement != Moving) {
+        movement = Moving;
+        //Serial.println(movement); 
       }
       break;    
   }
@@ -107,34 +110,24 @@ void printarray(int array[]) {
 
 int AB() {  //average baro
   switch(counter) {
-      case 0: last_baro[0] = baro_value();
+      case 0: case 1: case 2: case 3: case 4: case 5: case 6: 
+        last_baro[counter] = baro_value();
         counter++;
         break;
-      case 1: last_baro[1] = baro_value();
-        counter++;
-        break;
-      case 2: last_baro[2] = baro_value();
-        counter++;
-        break;
-      case 3: last_baro[3] = baro_value();
-        counter++;
-        break;
-      case 4: last_baro[4] = baro_value();
-        counter++;
-        break;
-      case 5: last_baro[5] = baro_value();
-        counter++;
-        break;
-      case 6: last_baro[6] = baro_value();
-        counter++;
-        break;
+      
       case 7: last_baro[7] = baro_value();
         counter = 0;
         avg_baro = average(last_baro, 0, 7);  // average over whole array
-        storey = FD();
-        //Serial.println("Stry: " + String(storey) + ",\tStry_baro: " + String(storey_baro)+ ",\tAvg: " + String(avg_baro) + ",\t VM: " + String(VM()));
-        printarray(last_baro);
-        Serial.println("score: " + String(VM()));
+        storey = FD();                        // refresh floor detection
+        current_move = VM();                  // refresh current movement
+        vert_movement = current_move && (current_move == last_move);  // securely detect vertical movement
+        AD();                                 // refresh movement
+        
+        Serial.println("Stry: " + String(storey) + ",\tstairs: " + String(movement == 2 && vert_movement) + ",\tlift: " + String(movement != 2 && vert_movement));
+        //printarray(last_baro);(
+
+        last_move = current_move;
+        last_avg = avg_baro;
         break;
   }
   
@@ -171,7 +164,10 @@ int VM() {
     }
     else score ++;    
   }
-  return score;
+
+  if((avg_baro - last_avg) > 1 && score > -1) return 1;
+  else if((avg_baro - last_avg) < -1 && score < 1) return -1;
+  else return 0;
 }
 
 
