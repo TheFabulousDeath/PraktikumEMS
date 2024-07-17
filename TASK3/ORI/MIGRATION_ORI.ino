@@ -42,18 +42,7 @@ bool is_moving()
 
 
 void setup() {
-  Serial.begin(115200);
-  BHY2.begin();
-  rotationVector.begin();
-  magnetometer.begin();
-  for(int i = 0; i<3000;i++)
-  {
-    BHY2.update();
-    delay(1);
-    Serial.println(String(i) + "/3000");
-  }
-  orientationSetup();
-  Serial.println("SETUP COMPLETE");
+
 }
 
 void loop() {
