@@ -5,14 +5,17 @@
 #include "Nicla_System.h"
 #include <Arduino_BHY2.h>
 
+#define hight 44 // hight difference for 2 storeys
+
+
 SensorActivity activity(SENSOR_ID_AR);
 Sensor baro(SENSOR_ID_BARO);
 
 // Global variables:
 enum motion {Undifined = -1, Still, NotStill, Moving} movement = Undifined;
 
-int storey = 0;   // starting floor = 0
-int storey_baro;   // pressure at starting floor
+int storey = 2;   // starting floor = 0
+int storey_baro;   // pressure at current floor
 int counter = 0; 
 int last_baro[8];
 int avg_baro;   // to return last calculated avg
@@ -56,8 +59,12 @@ void setup() {
   Serial.println("Activity:");
 }
 
+bool is_moving() {
+  return movement == 2;
+}
 
-int AR() {
+
+int AD() {  // activity detection
   switch(activity.value()) {
     case 256: if(movement != Still) {
       movement = Still;
@@ -82,16 +89,23 @@ int AR() {
   return movement;
 }
 
-int average(int array[]) {
+int average(int array[], int start, int end) {
   int sum = 0;
-  int l = sizeof(array) / sizeof(array[0]);
-    
-  for(int i = 0; i < l; i++) sum += array[i];
+  end++;  // index management, so that start/end are indices
+
+  for(int i = start; i < end; i++) sum += array[i];   // sum
   
-  return sum / l;
+  return sum / (end - start);
 }
 
-int AB() {
+void printarray(int array[]) {
+  for(int i = 0; i < 8; i++) {
+    Serial.print(String(array[i])+", ");
+  }
+  //Serial.print("\n");
+}
+
+int AB() {  //average baro
   switch(counter) {
       case 0: last_baro[0] = baro_value();
         counter++;
@@ -115,23 +129,51 @@ int AB() {
         counter++;
         break;
       case 7: last_baro[7] = baro_value();
-        Serial.println("Stry_baro: "+ String(storey_baro)+ "  Avg: " + String(average(last_baro)));
         counter = 0;
-        avg_baro = average(last_baro);
+        avg_baro = average(last_baro, 0, 7);  // average over whole array
         storey = FD();
+        //Serial.println("Stry: " + String(storey) + ",\tStry_baro: " + String(storey_baro)+ ",\tAvg: " + String(avg_baro) + ",\t VM: " + String(VM()));
+        printarray(last_baro);
+        Serial.println("score: " + String(VM()));
         break;
   }
   
   return avg_baro;
 }
 
-int FD() {  // threashold = 34
-  
+
+int FD() {  // floor detection
+  int difference = storey_baro - avg_baro;
+
+  if(abs(difference) < (hight*3/4)) { // same storey
+    return storey;
+  }
+  else if(difference > (hight*3/4) && difference < (hight*5/4)) { // storey up
+    storey_baro -= hight;
+    return ++storey;
+  }
+  else if(-difference > (hight*3/4) && difference < (hight*5/4)) { // storey down
+    storey_baro += hight;
+    return --storey;
+  }
+  return storey;  // fallback
 }
 
-bool approx(int value, int compare, int deviation) {
-  return (value)
+
+int VM() {
+  int score = 0;
+  for(int i = 0; i < 7; i++) {
+    if(last_baro[i] == last_baro[i+1]) {
+      continue;
+    }
+    else if(last_baro[i] > last_baro[i+1]) {
+      score--;
+    }
+    else score ++;    
+  }
+  return score;
 }
+
 
 void loop() {
   static auto lastCheck = millis();
@@ -143,7 +185,7 @@ void loop() {
     
 
   AB();
-//    Serial.println(String(FD())); 
+  //Serial.println(String());
   
   }
 }
